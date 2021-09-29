@@ -1,5 +1,5 @@
-int rows = 10;
-int cols = 10;
+int rows = 20;
+int cols = 20;
 int delay = 30;
 float scale;
 
@@ -14,13 +14,14 @@ void setup() {
 
   //  int startX = floor(cols/2);
   //  int startY = floor(rows/2);
-  snake = new Snake(0, 0);
+  snake = new Snake(0, 0, 5);
   food = new Cell(cols/2, rows/2);
   food.c = color(0, 255, 0);
+  food.isSnakeBody = false;
 }
 
 void draw() {
-  if (frameCount % delay == 0) {
+  if (frameCount % delay == 1) {
     background(0);
     snake.update();
     if (food.intersects(snake.head())) {
@@ -51,25 +52,19 @@ void touchStarted() {
 }
 
 void touchEnded() {
-  PVector mouse = new PVector(mouseX, mouseY);
-  mouse.sub(pmouse);
-  int angle = round(mouse.heading()/HALF_PI);
-  switch (angle) {
-  case -1:
-    snake.xdir = 0;
-    snake.ydir = -1;
-    break;
-  case 0:
-    snake.xdir = 1;
-    snake.ydir = 0;
-    break;
-  case 1:
-    snake.xdir = 0;
-    snake.ydir = 1;
-    break;
-  case -2:
-    snake.xdir = -1;
-    snake.ydir = 0;
-    break;
+  float rad = atan2(pmouse.y-mouseY, mouseX-pmouse.x) + PI;
+  float angle = (rad*180/PI + 180)%360;
+  if (inRange(angle, 45, 135)) {
+    snake.changeDir(0,-1);
+  } else if (inRange(angle, 0, 45) || inRange(angle, 315, 360)) {
+    snake.changeDir(1,0);
+  } else if (inRange(angle, 225, 315)) {
+    snake.changeDir(0,1);
+  } else {
+    snake.changeDir(-1,0);
   }
+}
+
+boolean inRange(float value, float min, float max) {
+  return value>=min && value<=max;
 }

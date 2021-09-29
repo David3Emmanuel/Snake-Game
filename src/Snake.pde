@@ -1,13 +1,19 @@
 class Snake {
   ArrayList<Cell> body;
   int xdir, ydir;
+  float speed;
   boolean grow;
 
-  Snake(int i, int j) {
+  Snake(float i, float j, int size) {
     body = new ArrayList<Cell>();
     body.add(new Cell(i, j));
     xdir = 1;
     ydir = 0;
+    grow = true;
+    for (int s=0;s<size;s++) {
+      update();
+      grow = true;
+    }
     grow = false;
   }
 
@@ -17,32 +23,54 @@ class Snake {
     //    xdir = r<0.5?0:1;
     //    ydir = r<0.5?1:0;
     Cell head = head();
-    boolean gameOver = (
-      (head.i <= 0 && xdir == -1) ||
-      (head.i >= cols-1 && xdir == 1) ||
-      (head.j <= 0 && ydir == -1) ||
-      (head.j >= rows-1 && ydir == 1)
-      );
+    Cell newHead = new Cell(head.i+xdir,head.j+ydir);
+    
+    boolean gameOver = (newHead.i < 0 ||
+                        newHead.i > cols-1 ||
+                        newHead.j < 0 ||
+                        newHead.j > rows-1);
+    if (!gameOver) {
+      for (int index=1;index<body.size();index++) {
+        if (body.get(index).intersects(newHead)) {
+          gameOver = true;
+          break;
+        }
+      }
+    }
+    
     if (!gameOver) {
       if (grow) {
+//        println("Grow");
         grow = false;
-        show();
       } else {
         body.remove(body.size()-1);
       }
-      float i = head.i + xdir;
-      float j = head.j + ydir;
-      body.add(0, new Cell(i, j));
+      
+      body.add(0, newHead);
+//      for (Cell c : body) {
+//        c.c =color(255,0,0);
+//      }
+//      head().c = color(255,255,0);
+      show();
+    }
+  }
+  
+  void changeDir(int newXdir, int newYdir) {
+    if (newXdir != -xdir &&
+        newYdir != -ydir) {
+      xdir = newXdir;
+      ydir = newYdir;
     }
   }
 
   void show() {
     fill(255,0,0);
-    stroke(255);
-//    noStroke();
+    
     for (int index=0;index<body.size();index++) {
       Cell current = body.get(index);
-      rect(current.i*scale+1,current.j*scale+1,scale-1,scale-1);
+      noStroke();
+//      ;
+      current.show();
       
       boolean[] walls = {true,true,true,true};
       
@@ -61,7 +89,9 @@ class Snake {
       
       float i = current.i;
       float j = current.j;
-      println(walls);
+//      println("\n");
+//      println(walls);
+      stroke(255);
       if (walls[0]) {
         line(i*scale,j*scale,(i+1)*scale,j*scale);
       }
@@ -75,6 +105,8 @@ class Snake {
         line(i*scale,(j+1)*scale,i*scale,j*scale);
       }
     }
+    fill(255,255,0);
+    rect(head().i*scale+scale/3,head().j*scale+scale/3,scale/3,scale/3);
   }
   
   Cell head() {
